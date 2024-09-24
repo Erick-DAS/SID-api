@@ -13,6 +13,8 @@ sqlalchemy = "2.0.35"
 alembic = "1.13.3"
 psycopg2-binary = "2.9.9"
 requests = "2.32.3"
+asyncpg = "0.29.0"
+asyncio = "3.4.3"
 
 
 [tool.poetry.group.dev.dependencies]
