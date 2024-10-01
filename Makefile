@@ -14,6 +14,9 @@ run-db:
 	docker compose up -d
 
 stop-db: 
+	docker compose stop
+
+destroy-db:
 	docker compose down
 
 install:
