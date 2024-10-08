@@ -13,6 +13,7 @@ class User(Base):
     id = sa.Column(sa.UUID, primary_key=True, default=lambda: str(uuid4()))
     full_name = sa.Column(sa.String)
     email = sa.Column(sa.String, unique=True)
+    hashed_password = sa.Column(sa.String)
     role = sa.Column(sa.String)
 
 class Section(Base):
