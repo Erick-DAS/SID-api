@@ -33,5 +33,27 @@ class Article(Base):
 
     id = sa.Column(sa.UUID, primary_key=True, default=lambda: str(uuid4()))
     title = sa.Column(sa.String, nullable=False)
+    section = sa.Column(sa.String, nullable=True)
+    created_at = sa.Column(sa.DateTime, nullable=False)
+    preview = sa.Column(sa.String, nullable=False)
+    tags = sa.Column(sa.String, nullable=True)
+
+    user_id = sa.Column(sa.ForeignKey("users.id"), nullable=False)
+    user = orm.relationship("User", foreign_keys=[user_id])
+
+    current_version_id = sa.Column(sa.ForeignKey("versions.id"), nullable=False)
+    current_version = orm.relationship("Version", foreign_keys=[current_version_id])
+
+class Version(Base):
+    __tablename__ = "versions"
+
+    id = sa.Column(sa.UUID, primary_key=True, default=lambda: str(uuid4()))
+
+    created_at = sa.Column(sa.DateTime, nullable=False)
     content = sa.Column(sa.Text, nullable=False)
-    section = sa.Column(sa.Text, nullable=True)
+
+    article_id = sa.Column(sa.ForeignKey("articles.id"), nullable=False)
+    article = orm.relationship("Article", foreign_keys=[article_id])
+
+    user_id = sa.Column(sa.ForeignKey("users.id"), nullable=False)
+    user = orm.relationship("User", foreign_keys=[user_id])
