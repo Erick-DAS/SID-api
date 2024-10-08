@@ -1,3 +1,5 @@
+from typing import Annotated
+
 from fastapi import HTTPException, status, Depends, APIRouter
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
@@ -13,7 +15,7 @@ app = APIRouter()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 @app.get("/users/{id_user}", response_model=UserPublic)
-def get_user(id_user: str, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)): # Talvez a anotacao do token esteja errada mas acho q ta check
+def get_user(id_user: str, token: Annotated[str, Depends(oauth2_scheme)], db: Session = Depends(get_db)):
     try:
         found_user = get_user_by_id(db=db, id=id_user)
         if found_user is None:
@@ -27,7 +29,7 @@ def get_user(id_user: str, db: Session = Depends(get_db), token: str = Depends(o
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error")
 
 @app.get("/users/me", response_model=UserPublic)
-def get_user_me(current_user: User = Depends(get_current_user)):
+def get_user_me(current_user: Annotated[User, Depends(get_current_user)]):
     try:
         return current_user
     except HTTPException as e:

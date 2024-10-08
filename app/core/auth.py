@@ -1,3 +1,5 @@
+from typing import Annotated
+
 from fastapi import Depends
 from fastapi.security import OAuth2PasswordBearer
 
@@ -12,6 +14,6 @@ def fake_decode_token(token):
         full_name=token + "fakedecoded"
     )
 
-async def get_current_user(token: str = Depends(oauth2_scheme)):
+async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
     user = fake_decode_token(token)
     return user
