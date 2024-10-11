@@ -1,6 +1,4 @@
-import psycopg2
-from psycopg2 import sql
-from sqlalchemy import create_engine, text
+from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
 
 import app.core.config as cfg
@@ -10,7 +8,10 @@ import app.core.config as cfg
 DATABASE_URL = f"postgresql://{cfg.POSTGRES_USER}:{cfg.POSTGRES_PASSWORD}@localhost/{cfg.POSTGRES_DB}"
 
 engine = create_engine(DATABASE_URL)
-SessionLocal = scoped_session(sessionmaker(autocommit=False, autoflush=False, bind=engine))
+SessionLocal = scoped_session(
+    sessionmaker(autocommit=False, autoflush=False, bind=engine)
+)
+
 
 def get_db():
     db = SessionLocal()
