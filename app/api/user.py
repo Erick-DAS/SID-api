@@ -7,7 +7,7 @@ from datetime import timedelta
 
 import app.crud.user as user_crud
 from app.database import get_db
-from app.models import User
+from app.models import User, UserRole
 from app.schemas.user import UserPublic, UserForm
 from app.core.auth import (
     get_current_user,
@@ -110,7 +110,8 @@ async def create_user(form: UserForm, session: Session = Depends(get_db)):
         full_name=form.full_name,
         email=form.email,
         hashed_password=hashed_password,
-        role="waiting for approval",
+        role=UserRole.WAITING,
+        motivation=form.motivation,
     )
 
     user_in_db = user_crud.create_user(session, user)

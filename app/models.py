@@ -2,11 +2,16 @@ import sqlalchemy as sa
 import sqlalchemy.orm as orm
 
 from uuid import uuid4
+from enum import Enum as PyEnum
 
 from sqlalchemy.ext.declarative import declarative_base
 
 Base = declarative_base()
 
+class UserRole(PyEnum):
+    ADMIN = "admin"
+    USER = "user"
+    WAITING = "waiting for approval"
 
 class User(Base):
     __tablename__ = "users"
@@ -15,7 +20,8 @@ class User(Base):
     full_name = sa.Column(sa.String)
     email = sa.Column(sa.String, unique=True)
     hashed_password = sa.Column(sa.String, nullable=False)
-    role = sa.Column(sa.String)
+    role = sa.Column(sa.Enum(UserRole), default=UserRole.WAITING, nullable=False)
+    motivation = sa.Column(sa.Text, nullable=False)
 
 
 class Section(Base):

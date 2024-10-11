@@ -9,4 +9,4 @@ class UserForm(BaseModel):
     full_name: str
     email: str
     password: str
-    # motivation: str
+    motivation: str
