@@ -1,4 +1,4 @@
-"""migration message
+"""add_password
 
 Revision ID: b0e8d3e2d09d
 Revises: 3b4dfad17c14

@@ -1,4 +1,4 @@
-"""migration message
+"""section_and_article_tables
 
 Revision ID: 3b4dfad17c14
 Revises: 4aabb2eb51c8
