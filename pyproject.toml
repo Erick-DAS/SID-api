@@ -16,6 +16,9 @@ psycopg2-binary = "2.9.9"
 requests = "2.32.3"
 asyncpg = "0.29.0"
 asyncio = "3.4.3"
+passlib = {extras = ["bcrypt"], version = "1.7.4"}
+py-bcrypt = "0.4"
+pyjwt = "^2.9.0"
 
 
 [tool.poetry.group.dev.dependencies]
