@@ -25,3 +25,11 @@ install:
 start-venv:
 	poetry shell
 
+format:
+	ruff format
+
+lint-check:
+	ruff check
+
+lint: 
+	ruff check --fix

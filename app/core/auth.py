@@ -14,24 +14,29 @@ import app.core.config as cfg
 from app.database import get_db
 from app.crud.user import get_user_by_email
 
-ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 2 # 2 hours
+ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 2  # 2 hours
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
+
 class Token(BaseModel):
     access_token: str
     token_type: str
 
+
 class TokenData(BaseModel):
     email: str | None = None
+
 
 def get_password_hash(password):
     return bcrypt.hashpw(password, bcrypt.gensalt(12))
 
+
 def verify_password(plain_password: str, hashed_password: str):
     return bcrypt.checkpw(plain_password, hashed_password)
+
 
 def check_password_format(password: str):
     validations = [
@@ -47,17 +52,23 @@ def check_password_format(password: str):
 
     return True
 
+
 def create_access_token(data: dict, expires_delta: timedelta | None = None):
     to_encode = data.copy()
     if expires_delta:
         expire = datetime.now(timezone.utc) + expires_delta
     else:
-        expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        expire = datetime.now(timezone.utc) + timedelta(
+            minutes=ACCESS_TOKEN_EXPIRE_MINUTES
+        )
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, cfg.JWT_KEY, algorithm="HS256")
     return encoded_jwt
 
-async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)], session: Session = Depends(get_db)):
+
+async def get_current_user(
+    token: Annotated[str, Depends(oauth2_scheme)], session: Session = Depends(get_db)
+):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
