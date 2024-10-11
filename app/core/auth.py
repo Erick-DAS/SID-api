@@ -33,6 +33,20 @@ def get_password_hash(password):
 def verify_password(plain_password: str, hashed_password: str):
     return bcrypt.checkpw(plain_password, hashed_password)
 
+def check_password_format(password: str):
+    validations = [
+        len(password) >= 8,
+        len(password) <= 20,
+        any(char.isdigit() for char in password),
+        any(char.isupper() for char in password),
+        any(char.islower() for char in password),
+    ]
+
+    if not all(validations):
+        return False
+
+    return True
+
 def create_access_token(data: dict, expires_delta: timedelta | None = None):
     to_encode = data.copy()
     if expires_delta:
