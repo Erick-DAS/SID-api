@@ -8,10 +8,12 @@ from sqlalchemy.ext.declarative import declarative_base
 
 Base = declarative_base()
 
+
 class UserRole(PyEnum):
     ADMIN = "admin"
     USER = "user"
     WAITING = "waiting for approval"
+
 
 class User(Base):
     __tablename__ = "users"
