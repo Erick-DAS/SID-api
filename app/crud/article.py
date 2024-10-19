@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session, joinedload
 
-from app.models import Article, SectionName, User
+from app.models import Article, SectionName, User, Version
 from app.schemas.article import ArticlePublic
 from app.logger import logger
 
@@ -111,3 +111,18 @@ def get_articles_by_section(db: Session, section: SectionName | None) -> Article
         )
         for article in articles
     ]
+def get_article_by_id(db: Session, id: str):
+    article = db.query(Article).filter(Article.id == id).first()
+    return article
+
+def create_article(db: Session, article: Article):
+    db.add(article)
+    db.commit()
+    db.refresh(article)
+    return article
+
+def update_version(db: Session, article: Article, version: Version):
+    article.current_version_id = version.id
+    db.commit()
+    db.refresh(article)
+    return article
