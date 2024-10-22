@@ -13,6 +13,7 @@ from pydantic import BaseModel
 import app.core.config as cfg
 from app.database import get_db
 from app.crud.user import get_user_by_email
+from app.models import User, UserRole
 
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 2  # 2 hours
 
@@ -87,3 +88,11 @@ async def get_current_user(
     if user is None:
         raise credentials_exception
     return user
+
+
+async def get_current_active_user(
+    current_user: Annotated[User, Depends(get_current_user)],
+):
+    if current_user.role == UserRole.WAITING:
+        raise HTTPException(status_code=400, detail="User not yet approved")
+    return current_user
