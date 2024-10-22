@@ -1,8 +1,8 @@
-"""general_models
+"""models_for_search
 
-Revision ID: 86a690d5dd70
-Revises: b0e8d3e2d09d
-Create Date: 2024-10-10 23:19:13.937682
+Revision ID: 19da2bc01207
+Revises: c45f0eff8cca
+Create Date: 2024-10-22 14:20:42.432128
 
 """
 from typing import Sequence, Union
@@ -12,8 +12,8 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '86a690d5dd70'
-down_revision: Union[str, None] = 'b0e8d3e2d09d'
+revision: str = '19da2bc01207'
+down_revision: Union[str, None] = 'c45f0eff8cca'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
@@ -24,9 +24,7 @@ def upgrade() -> None:
     sa.Column('id', sa.UUID(), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=False),
     sa.Column('content', sa.Text(), nullable=False),
-    sa.Column('article_id', sa.UUID(), nullable=False),
     sa.Column('user_id', sa.UUID(), nullable=False),
-    sa.ForeignKeyConstraint(['article_id'], ['articles.id'], ),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
@@ -39,8 +37,8 @@ def upgrade() -> None:
                existing_type=sa.TEXT(),
                type_=sa.String(),
                existing_nullable=True)
-    op.create_foreign_key(None, 'articles', 'users', ['user_id'], ['id'])
     op.create_foreign_key(None, 'articles', 'versions', ['current_version_id'], ['id'])
+    op.create_foreign_key(None, 'articles', 'users', ['user_id'], ['id'])
     op.drop_column('articles', 'content')
     # ### end Alembic commands ###
 

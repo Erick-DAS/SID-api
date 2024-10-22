@@ -60,8 +60,5 @@ class Version(Base):
     created_at = sa.Column(sa.DateTime, nullable=False)
     content = sa.Column(sa.Text, nullable=False)
 
-    article_id = sa.Column(sa.ForeignKey("articles.id"), nullable=False)
-    article = orm.relationship("Article", foreign_keys=[article_id])
-
     user_id = sa.Column(sa.ForeignKey("users.id"), nullable=False)
     user = orm.relationship("User", foreign_keys=[user_id])

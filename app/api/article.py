@@ -9,7 +9,7 @@ from app.models import Article
 
 app = APIRouter()
 
-@app.get("/article/search/", response_model=List[Article])
+@app.get("/article/search/") # Adicionar response_model
 def search_articles(title: str, db: Session = Depends(get_db)):
     articles = article_crud.get_articles_by_title(db=db, title=title)
 
