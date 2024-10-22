@@ -23,7 +23,7 @@ class User(Base):
     email = sa.Column(sa.String, unique=True)
     hashed_password = sa.Column(sa.String, nullable=False)
     role = sa.Column(sa.Enum(UserRole), default=UserRole.WAITING, nullable=False)
-    motivation = sa.Column(sa.Text, nullable=False)
+    motivation = sa.Column(sa.String, nullable=False)
 
 
 class Section(Base):
@@ -40,25 +40,33 @@ class Article(Base):
     __tablename__ = "articles"
 
     id = sa.Column(sa.UUID, primary_key=True, default=lambda: str(uuid4()))
+
     title = sa.Column(sa.String, nullable=False)
     section = sa.Column(sa.String, nullable=True)
-    created_at = sa.Column(sa.DateTime, nullable=False)
     preview = sa.Column(sa.String, nullable=False)
-    tags = sa.Column(sa.String, nullable=True)
+    content = sa.Column(sa.String, nullable=False)
 
-    user_id = sa.Column(sa.ForeignKey("users.id"), nullable=False)
-    user = orm.relationship("User", foreign_keys=[user_id])
+    created_at = sa.Column(sa.DateTime, nullable=False)
+    updated_at = sa.Column(sa.DateTime, nullable=False)
 
-    current_version_id = sa.Column(sa.ForeignKey("versions.id"), nullable=False)
-    current_version = orm.relationship("Version", foreign_keys=[current_version_id])
+    author_id = sa.Column(sa.ForeignKey("users.id"), nullable=False)
+    user = orm.relationship("User", foreign_keys=[author_id])
 
 class Version(Base):
     __tablename__ = "versions"
 
     id = sa.Column(sa.UUID, primary_key=True, default=lambda: str(uuid4()))
 
+    title = sa.Column(sa.String, nullable=False)
+    section = sa.Column(sa.String, nullable=True)
+    preview = sa.Column(sa.String, nullable=False)
+    content = sa.Column(sa.String, nullable=False)
+    
+    version_number = sa.Column(sa.Integer, nullable=False)
     created_at = sa.Column(sa.DateTime, nullable=False)
-    content = sa.Column(sa.Text, nullable=False)
 
-    user_id = sa.Column(sa.ForeignKey("users.id"), nullable=False)
-    user = orm.relationship("User", foreign_keys=[user_id])
+    article_id = sa.Column(sa.ForeignKey("articles.id"), nullable=False)
+    article = orm.relationship("Article", foreign_keys=[article_id])
+    
+    editor_id = sa.Column(sa.ForeignKey("users.id"), nullable=False)
+    user = orm.relationship("User", foreign_keys=[editor_id])
