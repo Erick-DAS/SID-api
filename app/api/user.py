@@ -1,7 +1,7 @@
 from typing import Annotated
 
 from fastapi import HTTPException, status, Depends, APIRouter
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from datetime import timedelta
 
@@ -17,21 +17,37 @@ from app.core.auth import (
     check_password_format,
     Token,
     ACCESS_TOKEN_EXPIRE_MINUTES,
+    oauth2_scheme,
 )
+from app.logger import logger 
 
 app = APIRouter()
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
+@app.get("/users/me", response_model=UserPublic)
+def get_user_me(current_user: Annotated[User, Depends(get_current_user)]):
+    try:
+        return current_user
+    except HTTPException as e:
+        raise e
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e)
+        )
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal server error",
+        )
 
-@app.get("/users/{id_user}", response_model=UserPublic)
+@app.get("/users/{user_id}", response_model=UserPublic)
 def get_user(
-    id_user: str,
+    user_id: str,
     token: Annotated[str, Depends(oauth2_scheme)],
     db: Session = Depends(get_db),
 ):
     try:
-        found_user = user_crud.get_user_by_id(db=db, id=id_user)
+        found_user = user_crud.get_user_by_id(db=db, id=user_id)
         if found_user is None:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
@@ -50,21 +66,7 @@ def get_user(
         )
 
 
-@app.get("/users/me", response_model=UserPublic)
-def get_user_me(current_user: Annotated[User, Depends(get_current_user)]):
-    try:
-        return current_user
-    except HTTPException as e:
-        raise e
-    except ValueError as e:
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e)
-        )
-    except Exception:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Internal server error",
-        )
+
 
 
 @app.post("/token")
@@ -117,3 +119,29 @@ async def create_user(form: UserForm, session: Session = Depends(get_db)):
     user_in_db = user_crud.create_user(session, user)
 
     return UserPublic(**user_in_db.__dict__)
+
+""" @app.delete("/users/{user_id}")
+def get_user(
+    user_id: str,
+    token: Annotated[str, Depends(oauth2_scheme)],
+    db: Session = Depends(get_db),
+):
+    try:
+        found_user = user_crud.get_user_by_id(db=db, id=user_id)
+        if found_user is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+            )
+        return UserPublic(**found_user.__dict__)
+    except HTTPException as e:
+        raise e
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e)
+        )
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal server error",
+        )
+ """

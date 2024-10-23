@@ -15,9 +15,11 @@ from app.database import get_db
 from app.crud.user import get_user_by_email
 from app.models import User, UserRole
 
+from app.logger import logger
+
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 2  # 2 hours
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/token")
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -68,7 +70,7 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
 
 
 async def get_current_user(
-    token: Annotated[str, Depends(oauth2_scheme)], session: Session = Depends(get_db)
+    token: Annotated[str, Depends(oauth2_scheme)], session: Annotated[Session, Depends(get_db)]
 ):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -78,13 +80,13 @@ async def get_current_user(
 
     try:
         payload = jwt.decode(token, cfg.JWT_KEY, algorithms=["HS256"])
-        username: str = payload.get("sub")
-        if username is None:
+        email: str | None = payload.get("sub")
+        if email is None:
             raise credentials_exception
-        token_data = TokenData(username=username)
-    except InvalidTokenError:
+        token_data = TokenData(email=email)
+    except InvalidTokenError: 
         raise credentials_exception
-    user = get_user_by_email(session, username=token_data.email)
+    user = get_user_by_email(session, email=token_data.email)
     if user is None:
         raise credentials_exception
     return user

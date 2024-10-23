@@ -20,7 +20,7 @@ migrate-undo: # Undo the last executed alembic migration
 
 .PHONY: run-api
 run-api: # Runs the API with FastAPI. Swagger at localhost:8000/docs and documentation at localhost:8000/redoc
-	@fastapi run app/main.py
+	@uvicorn app.main:app --reload --log-level debug
 
 .PHONY: run-db
 run-db: # Runs the database with docker-compose
