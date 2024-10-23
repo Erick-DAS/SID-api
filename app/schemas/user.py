@@ -10,6 +10,13 @@ class UserPublic(BaseModel):
     role: UserRole
 
 
+class UserADMView(UserPublic):
+    full_name: str
+    email: str
+    role: UserRole
+    motivation: str
+
+
 class UserForm(BaseModel):
     full_name: str
     email: str

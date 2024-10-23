@@ -1,28 +1,41 @@
 from sqlalchemy.orm import Session
+from typing import List
 
-from app.models import User
-
+from app.models import User, UserRole
 from app.logger import logger
 
 
-def get_user_by_id(db: Session, id: str):
+def get_user_by_id(db: Session, id: str) -> User:
     user = db.query(User).filter(User.id == id).first()
     return user
 
 
-def get_user_by_email(db: Session, email: str):
+def get_user_by_email(db: Session, email: str) -> User:
     user = db.query(User).filter(User.email == email).first()
     return user
 
 
-def create_user(db: Session, user: User):
+def create_user(db: Session, user: User) -> User:
     db.add(user)
     db.commit()
     db.refresh(user)
     return user
 
 
-def delete_user(db: Session, user: User):
+def delete_user(db: Session, user: User) -> User:
     db.delete(user)
     db.commit()
     return user
+
+
+def list_users(
+    db: Session, skip: int = 0, limit: int = 100, role: UserRole | None = None
+) -> List[User]:
+    query = db.query(User).offset(skip).limit(limit).order_by(User.full_name.asc())
+
+    if role is not None:
+        query = query.filter(User.role == role)
+    
+    users = query.all()
+
+    return users

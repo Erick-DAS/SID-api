@@ -4,11 +4,12 @@ from fastapi import HTTPException, status, Depends, APIRouter
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from datetime import timedelta
+from typing import List
 
 import app.crud.user as user_crud
 from app.database import get_db
 from app.models import User, UserRole
-from app.schemas.user import UserPublic, UserForm, UserUpdateForm
+from app.schemas.user import UserPublic, UserForm, UserUpdateForm, UserADMView
 from app.core.auth import (
     get_current_user,
     get_current_approved_user,
@@ -26,7 +27,7 @@ from app.logger import logger
 app = APIRouter()
 
 
-@app.get("/users/me", response_model=UserPublic)
+@app.get("/me", response_model=UserPublic)
 async def get_user_me(current_user: Annotated[User, Depends(get_current_user)]):
     try:
         logger.debug(f"current user email: {current_user.email}")
@@ -44,7 +45,7 @@ async def get_user_me(current_user: Annotated[User, Depends(get_current_user)]):
         )
 
 
-@app.get("/users/{user_id}", response_model=UserPublic)
+@app.get("/{user_id}", response_model=UserPublic)
 async def get_user(
     user_id: str,
     _: Annotated[str, Depends(oauth2_scheme)],
@@ -97,7 +98,7 @@ async def login(
     return Token(access_token=access_token, token_type="bearer")
 
 
-@app.post("/users", response_model=UserPublic)
+@app.post("", response_model=UserPublic)
 async def create_user(form: UserForm, session: Session = Depends(get_db)):
     user_by_email = user_crud.get_user_by_email(session, form.email)
     if user_by_email:
@@ -127,8 +128,8 @@ async def create_user(form: UserForm, session: Session = Depends(get_db)):
     return UserPublic(**user_in_db.__dict__)
 
 
-@app.delete("/users/{user_id}", response_model=UserPublic)
-async def remove_user(
+@app.delete("/{user_id}", response_model=UserPublic)
+async def delete_user(
     user_id: str,
     _: Annotated[str, Depends(get_current_admin)],
     db: Session = Depends(get_db),
@@ -156,7 +157,7 @@ async def remove_user(
         )
 
 
-@app.put("/users/{user_id}")
+@app.put("/{user_id}")
 async def update_user(
     user_id: str,
     form: UserUpdateForm,
@@ -200,3 +201,17 @@ async def update_user(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal server error",
         )
+
+@app.get("", response_model=List[UserADMView])
+async def get_users(
+    skip: int | None,
+    limit: int | None,
+    filter_by_role: UserRole | None,
+    _: Annotated[str, Depends(get_current_admin)],
+    role: UserRole | None = None,
+    db: Session = Depends(get_db),
+):
+    
+    users = user_crud.list_users(db=db, skip=skip, limit=limit, role=role, filter_by_role=filter_by_role)
+
+    return [UserADMView(**user.__dict__) for user in users]
