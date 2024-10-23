@@ -70,7 +70,8 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
 
 
 async def get_current_user(
-    token: Annotated[str, Depends(oauth2_scheme)], session: Annotated[Session, Depends(get_db)]
+    token: Annotated[str, Depends(oauth2_scheme)],
+    session: Annotated[Session, Depends(get_db)],
 ):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -84,7 +85,7 @@ async def get_current_user(
         if email is None:
             raise credentials_exception
         token_data = TokenData(email=email)
-    except InvalidTokenError: 
+    except InvalidTokenError:
         raise credentials_exception
     user = get_user_by_email(session, email=token_data.email)
     if user is None:
@@ -92,9 +93,21 @@ async def get_current_user(
     return user
 
 
-async def get_current_active_user(
+async def get_current_approved_user(
     current_user: Annotated[User, Depends(get_current_user)],
 ):
-    if current_user.role == UserRole.WAITING:
-        raise HTTPException(status_code=400, detail="User not yet approved")
+    if current_user.role == UserRole.ESPERANDO_APROVACAO:
+        raise HTTPException(
+            status_code=400, detail="Only editors or admins can perform this action"
+        )
+    return current_user
+
+
+async def get_current_admin(
+    current_user: Annotated[User, Depends(get_current_user)],
+):
+    if current_user.role != UserRole.ADMIN:
+        raise HTTPException(
+            status_code=400, detail="Only admins can perform this action"
+        )
     return current_user

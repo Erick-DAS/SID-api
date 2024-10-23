@@ -8,9 +8,11 @@ from datetime import timedelta
 import app.crud.user as user_crud
 from app.database import get_db
 from app.models import User, UserRole
-from app.schemas.user import UserPublic, UserForm
+from app.schemas.user import UserPublic, UserForm, UserUpdateForm
 from app.core.auth import (
     get_current_user,
+    get_current_approved_user,
+    get_current_admin,
     get_password_hash,
     verify_password,
     create_access_token,
@@ -19,14 +21,15 @@ from app.core.auth import (
     ACCESS_TOKEN_EXPIRE_MINUTES,
     oauth2_scheme,
 )
-from app.logger import logger 
+from app.logger import logger
 
 app = APIRouter()
 
 
 @app.get("/users/me", response_model=UserPublic)
-def get_user_me(current_user: Annotated[User, Depends(get_current_user)]):
+async def get_user_me(current_user: Annotated[User, Depends(get_current_user)]):
     try:
+        logger.debug(f"current user email: {current_user.email}")
         return current_user
     except HTTPException as e:
         raise e
@@ -40,14 +43,16 @@ def get_user_me(current_user: Annotated[User, Depends(get_current_user)]):
             detail="Internal server error",
         )
 
+
 @app.get("/users/{user_id}", response_model=UserPublic)
-def get_user(
+async def get_user(
     user_id: str,
-    token: Annotated[str, Depends(oauth2_scheme)],
+    _: Annotated[str, Depends(oauth2_scheme)],
     db: Session = Depends(get_db),
 ):
     try:
         found_user = user_crud.get_user_by_id(db=db, id=user_id)
+        logger.debug(f"Found user email: {found_user.email}")
         if found_user is None:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
@@ -66,10 +71,7 @@ def get_user(
         )
 
 
-
-
-
-@app.post("/token")
+@app.post("/token", response_model=Token)
 async def login(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
     session: Session = Depends(get_db),
@@ -83,15 +85,19 @@ async def login(
             headers={"WWW-Authenticate": "Bearer"},
         )
 
+    logger.debug("Password is correct, generating token")
+
     access_token = create_access_token(
         data={"sub": user.email},
         expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES),
     )
 
+    logger.debug("Token succesfully generated")
+
     return Token(access_token=access_token, token_type="bearer")
 
 
-@app.post("/users")
+@app.post("/users", response_model=UserPublic)
 async def create_user(form: UserForm, session: Session = Depends(get_db)):
     user_by_email = user_crud.get_user_by_email(session, form.email)
     if user_by_email:
@@ -112,7 +118,7 @@ async def create_user(form: UserForm, session: Session = Depends(get_db)):
         full_name=form.full_name,
         email=form.email,
         hashed_password=hashed_password,
-        role=UserRole.WAITING,
+        role=UserRole.ESPERANDO_APROVACAO,
         motivation=form.motivation,
     )
 
@@ -120,10 +126,11 @@ async def create_user(form: UserForm, session: Session = Depends(get_db)):
 
     return UserPublic(**user_in_db.__dict__)
 
-""" @app.delete("/users/{user_id}")
-def get_user(
+
+@app.delete("/users/{user_id}", response_model=UserPublic)
+async def remove_user(
     user_id: str,
-    token: Annotated[str, Depends(oauth2_scheme)],
+    _: Annotated[str, Depends(get_current_admin)],
     db: Session = Depends(get_db),
 ):
     try:
@@ -132,6 +139,9 @@ def get_user(
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
             )
+
+        user_crud.delete_user(db=db, user=found_user)
+
         return UserPublic(**found_user.__dict__)
     except HTTPException as e:
         raise e
@@ -144,4 +154,49 @@ def get_user(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal server error",
         )
- """
+
+
+@app.put("/users/{user_id}")
+async def update_user(
+    user_id: str,
+    form: UserUpdateForm,
+    _: Annotated[str, Depends(get_current_admin)],
+    db: Session = Depends(get_db),
+):
+    try:
+        found_user = user_crud.get_user_by_id(db=db, id=user_id)
+        if found_user is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+            )
+
+        if form.password:
+            if not check_password_format(form.password):
+                raise HTTPException(
+                    status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                    detail="Password does not meet the requirements: must be between 8 and 20 characters, contain at least one digit, one uppercase letter and one lowercase letter",
+                )
+
+            found_user.hashed_password = get_password_hash(form.password)
+
+        if form.full_name:
+            found_user.full_name = form.full_name
+
+        if form.role:
+            found_user.role = form.role
+
+        db.commit()
+        db.refresh(found_user)
+
+        return UserPublic(**found_user.__dict__)
+    except HTTPException as e:
+        raise e
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e)
+        )
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal server error",
+        )
