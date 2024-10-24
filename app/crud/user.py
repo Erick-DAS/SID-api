@@ -31,7 +31,7 @@ def delete_user(db: Session, user: User) -> User:
 def list_users(
     db: Session, skip: int = 0, limit: int = 100, role: UserRole | None = None
 ) -> List[User]:
-    query = db.query(User).offset(skip).limit(limit).order_by(User.full_name.asc())
+    query = db.query(User).order_by(User.full_name.asc()).offset(skip).limit(limit)
 
     if role is not None:
         query = query.filter(User.role == role)

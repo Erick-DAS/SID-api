@@ -20,7 +20,6 @@ from app.core.auth import (
     check_password_format,
     Token,
     ACCESS_TOKEN_EXPIRE_MINUTES,
-    oauth2_scheme,
 )
 from app.logger import logger
 
@@ -48,7 +47,7 @@ async def get_user_me(current_user: Annotated[User, Depends(get_current_user)]):
 @app.get("/{user_id}", response_model=UserPublic)
 async def get_user(
     user_id: str,
-    _: Annotated[str, Depends(oauth2_scheme)],
+    _: Annotated[str, Depends(get_current_admin)],
     db: Session = Depends(get_db),
 ):
     try:
@@ -205,15 +204,12 @@ async def update_user(
 
 @app.get("", response_model=List[UserADMView])
 async def get_users(
-    skip: int | None,
-    limit: int | None,
-    filter_by_role: UserRole | None,
     _: Annotated[str, Depends(get_current_admin)],
-    role: UserRole | None = None,
+    skip: int | None = None,
+    limit: int | None = None,
+    filter_by_role: UserRole | None = None,
     db: Session = Depends(get_db),
 ):
-    users = user_crud.list_users(
-        db=db, skip=skip, limit=limit, role=role, filter_by_role=filter_by_role
-    )
+    users = user_crud.list_users(db=db, skip=skip, limit=limit, role=filter_by_role)
 
     return [UserADMView(**user.__dict__) for user in users]
