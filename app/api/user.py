@@ -202,6 +202,7 @@ async def update_user(
             detail="Internal server error",
         )
 
+
 @app.get("", response_model=List[UserADMView])
 async def get_users(
     skip: int | None,
@@ -211,7 +212,8 @@ async def get_users(
     role: UserRole | None = None,
     db: Session = Depends(get_db),
 ):
-    
-    users = user_crud.list_users(db=db, skip=skip, limit=limit, role=role, filter_by_role=filter_by_role)
+    users = user_crud.list_users(
+        db=db, skip=skip, limit=limit, role=role, filter_by_role=filter_by_role
+    )
 
     return [UserADMView(**user.__dict__) for user in users]

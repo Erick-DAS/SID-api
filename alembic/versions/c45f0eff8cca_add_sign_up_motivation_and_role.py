@@ -11,9 +11,7 @@ from typing import Sequence, Union
 from alembic import op
 import sqlalchemy as sa
 
-# ### MANUALLY IMPORTED ###
-from app.models import UserRole
-
+from enum import Enum as PyEnum
 
 # revision identifiers, used by Alembic.
 revision: str = "c45f0eff8cca"
@@ -21,7 +19,14 @@ down_revision: Union[str, None] = "b0e8d3e2d09d"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
+
 # ### MANUALLY CREATE ENUM ###
+class UserRole(PyEnum):
+    ADMIN = "admin"
+    USER = "user"
+    WAITING = "waiting for approval"
+
+
 user_role_enum = sa.Enum(UserRole)
 
 

@@ -35,7 +35,7 @@ def list_users(
 
     if role is not None:
         query = query.filter(User.role == role)
-    
+
     users = query.all()
 
     return users
