@@ -5,14 +5,27 @@ from sqlalchemy.orm import Session
 
 import app.crud.article as article_crud
 from app.database import get_db
-from app.schemas.article import ArticlePublic
+from app.schemas.article import ArticlePublic, ArticleSearch
+from app.models import SectionName
 
 app = APIRouter()
 
 
-@app.get("/article/search/", response_model=List[ArticlePublic])
-def search_articles(title: str | None = None, db: Session = Depends(get_db)):
-    articles = article_crud.get_articles_by_title(db=db, title=title)
+@app.get("", response_model=List[ArticlePublic])
+def search_articles(
+    search_type: ArticleSearch | None = None,
+    search: str | None = None,
+    section: SectionName | None = None,
+    db: Session = Depends(get_db),
+):
+    
+    if search_type == ArticleSearch.AUTHOR:
+        articles = article_crud.get_articles_by_author(db=db, author=search, section=section)
+    elif search_type == ArticleSearch.CONTENT:
+        articles = article_crud.get_articles_by_content(db=db, content=search, section=section)
+    else:
+        articles = article_crud.get_articles_by_section(db=db, section=section)
+
     public_articles = []
 
     for article in articles:

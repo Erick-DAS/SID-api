@@ -30,7 +30,11 @@ def delete_user(db: Session, user: User) -> User:
 
 
 def list_users(
-    db: Session, skip: int = 0, limit: int = 100, role: UserRole | None = None, search: str | None = None
+    db: Session,
+    skip: int = 0,
+    limit: int = 100,
+    role: UserRole | None = None,
+    search: str | None = None,
 ) -> List[User]:
     query = db.query(User).order_by(User.full_name.asc()).offset(skip).limit(limit)
 
@@ -38,7 +42,9 @@ def list_users(
         query = query.filter(User.role == role)
 
     if search is not None:
-        query = query.filter(or_(User.full_name.ilike(f"%{search}%"), User.email.ilike(f"%{search}%")))
+        query = query.filter(
+            or_(User.full_name.ilike(f"%{search}%"), User.email.ilike(f"%{search}%"))
+        )
 
     users = query.all()
 

@@ -211,6 +211,8 @@ async def get_users(
     search: str | None = None,
     db: Session = Depends(get_db),
 ):
-    users = user_crud.list_users(db=db, skip=skip, limit=limit, role=filter_by_role, search=search)
+    users = user_crud.list_users(
+        db=db, skip=skip, limit=limit, role=filter_by_role, search=search
+    )
 
     return [UserADMView(**user.__dict__) for user in users]
