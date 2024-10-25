@@ -100,6 +100,14 @@ def upgrade() -> None:
         postgresql_using="section::sectionname",
         existing_nullable=True,
     )
+    op.alter_column(
+        "articles",
+        "section",
+        existing_type=sa.VARCHAR(),
+        type_=section_name_enum,
+        postgresql_using="section::sectionname",
+        existing_nullable=True,
+    )
 
     ####################################
 
@@ -122,6 +130,15 @@ def downgrade() -> None:
         postgresql_using="name::varchar",
         existing_nullable=False,
     )
+    op.alter_column(
+        "articles",
+        "name",
+        existing_type=section_name_enum,
+        type_=sa.VARCHAR(),
+        postgresql_using="section::varchar",
+        existing_nullable=False,
+    )
+    
     # ### end Alembic commands ###
 
     # ### MANUALLY DOWNGRADE USER ROLE ###
