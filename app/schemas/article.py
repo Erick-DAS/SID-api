@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from enum import Enum as PyEnum
+from datetime import datetime
 
 
 class ArticlePublic(BaseModel):
@@ -7,8 +8,8 @@ class ArticlePublic(BaseModel):
     preview: str
     section: str
     author_name: str
-    created_at: str
-    updated_at: str
+    created_at: datetime
+    updated_at: datetime
 
 
 class ArticleSearch(PyEnum):

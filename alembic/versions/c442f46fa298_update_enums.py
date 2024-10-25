@@ -138,7 +138,7 @@ def downgrade() -> None:
         postgresql_using="section::varchar",
         existing_nullable=False,
     )
-    
+
     # ### end Alembic commands ###
 
     # ### MANUALLY DOWNGRADE USER ROLE ###
