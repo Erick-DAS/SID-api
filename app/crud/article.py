@@ -121,8 +121,15 @@ def create_article(db: Session, article: Article):
     db.refresh(article)
     return article
 
-def update_version(db: Session, article: Article, version: Version):
-    article.current_version_id = version.id
+def update_article(db: Session, id: str, new_article_data: Article):
+    article = get_article_by_id(db=db, id=id)
+    
+    article.title = new_article_data.title
+    article.section = new_article_data.section
+    article.preview = new_article_data.preview
+    article.content = new_article_data.content
+    article.updated_at = new_article_data.updated_at
+
     db.commit()
     db.refresh(article)
     return article
