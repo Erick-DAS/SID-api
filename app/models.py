@@ -52,12 +52,12 @@ class Article(Base):
     id = sa.Column(sa.UUID, primary_key=True, default=lambda: str(uuid4()))
 
     title = sa.Column(sa.String, nullable=False)
-    section = sa.Column(sa.String, nullable=True)
+    section = sa.Column(sa.Enum(SectionName), nullable=True)
     preview = sa.Column(sa.String, nullable=False)
     content = sa.Column(sa.String, nullable=False)
 
     created_at = sa.Column(sa.DateTime, nullable=False)
-    updated_at = sa.Column(sa.DateTime, nullable=False)
+    updated_at = sa.Column(sa.DateTime, nullable=False)  # Deixar nullable
 
     author_id = sa.Column(sa.ForeignKey("users.id"), nullable=False)
     user = orm.relationship("User", foreign_keys=[author_id])

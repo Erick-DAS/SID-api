@@ -1,12 +1,24 @@
-from typing import List
+from datetime import datetime
+from typing import List, Annotated
+from uuid import uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 import app.crud.article as article_crud
+import app.crud.version as version_crud
+from app.core.auth import get_current_approved_user
 from app.database import get_db
-from app.schemas.article import ArticlePublic, ArticleSearch
-from app.models import SectionName
+from app.schemas.article import (
+    ArticleCreate,
+    ArticlePublic,
+    ArticleSearch,
+    ArticleMain,
+    ArticleUpdate,
+)
+from app.models import Article, SectionName, Version, User
+
+from app.logger import logger  # noqa: F401
 
 from uuid import UUID
 
@@ -38,6 +50,7 @@ def search_articles(
 
     return articles
 
+
 @app.get("/{user_id}", response_model=List[ArticlePublic])
 def get_user_articles(
     user_id: str | UUID,
@@ -50,4 +63,103 @@ def get_user_articles(
     for article in articles:
         public_articles.append(ArticlePublic(**article.__dict__))
 
-    return articles
+    return public_articles
+
+
+@app.get("/{article_id}", response_model=ArticleMain)
+def show_article(article_id: str, db: Session = Depends(get_db)):
+    article = article_crud.get_article_by_id(db=db, id=article_id)
+
+    if article is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Article not found"
+        )
+
+    return ArticleMain(**article.__dict__)
+
+
+@app.post("", response_model=ArticlePublic)
+async def create_article(
+    article: ArticleCreate,
+    editor: Annotated[User, Depends(get_current_approved_user)],
+    db: Session = Depends(get_db),
+):
+    preview = (
+        article.content[:300] + " ..."
+        if len(article.content) > 300
+        else article.content
+    )
+
+    new_article = Article(
+        id=str(uuid4()),
+        title=article.title,
+        section=article.section.name,
+        content=article.content,
+        created_at=datetime.now(),
+        updated_at=datetime.now(),
+        preview=preview,
+        author_id=editor.id,
+    )
+
+    article_in_db = article_crud.create_article(db=db, article=new_article)
+
+    return ArticlePublic(**article_in_db.__dict__, author_name=editor.full_name)
+
+
+@app.put("/{article_id}", response_model=ArticleUpdate)
+async def update_article(
+    article_data: ArticleUpdate,
+    editor: Annotated[User, Depends(get_current_approved_user)],
+    db: Session = Depends(get_db),
+):
+    deprecated_article = article_crud.get_article_by_id(db=db, id=article_data.id)
+    if deprecated_article is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Article not found"
+        )
+
+    preview = (
+        article_data.content[:300] + " ..."
+        if len(article_data.content) > 300
+        else article_data.content
+    )
+    new_article_data = Article(
+        title=article_data.title,
+        section=article_data.section.name,
+        content=article_data.content,
+        updated_at=datetime.now(),
+        preview=preview,
+    )
+    article_in_db = article_crud.update_article(
+        db=db, id=article_data.id, new_article_data=new_article_data
+    )
+
+    last_version = version_crud.get_latest_version_by_article_id(
+        db=db, article_id=article_data.id
+    )
+
+    newest_version_number = (
+        1 if last_version is None else last_version.version_number + 1
+    )
+
+    newest_version = Version(
+        id=str(uuid4()),
+        created_at=deprecated_article.updated_at,
+        title=deprecated_article.title,
+        preview=deprecated_article.preview,
+        section=deprecated_article.section.name,
+        content=deprecated_article.content,
+        article_id=deprecated_article.id,
+        editor_id=editor.id,
+        version_number=newest_version_number,
+    )
+
+    version_crud.create_version(db=db, version=newest_version)
+
+    return ArticleUpdate(
+        id=article_in_db.id,
+        title=article_in_db.title,
+        section=article_in_db.section,
+        content=article_in_db.content,
+        author_name=editor.full_name,
+    )

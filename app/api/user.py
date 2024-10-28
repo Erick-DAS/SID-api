@@ -12,7 +12,6 @@ from app.models import User, UserRole
 from app.schemas.user import UserPublic, UserForm, UserUpdateForm, UserADMView
 from app.core.auth import (
     get_current_user,
-    get_current_approved_user,
     get_current_admin,
     get_password_hash,
     verify_password,
@@ -21,7 +20,7 @@ from app.core.auth import (
     Token,
     ACCESS_TOKEN_EXPIRE_MINUTES,
 )
-from app.logger import logger
+from app.logger import logger  # noqa: F401
 
 app = APIRouter()
 
