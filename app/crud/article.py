@@ -2,8 +2,7 @@ from sqlalchemy.orm import Session, joinedload
 
 from app.models import Article, SectionName, User
 from app.schemas.article import ArticlePublic
-from app.logger import logger # noqa: F401
-
+from app.logger import logger  # noqa: F401
 
 
 def get_articles_by_title(db: Session, title: str | None) -> ArticlePublic:

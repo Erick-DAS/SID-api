@@ -12,7 +12,12 @@ def create_version(db: Session, version: Version) -> Version:
 
 
 def get_versions_by_article_id(db: Session, article_id: str) -> List[Version]:
-    versions = db.query(Version).filter(Version.article_id == article_id).all()
+    versions = (
+        db.query(Version)
+        .filter(Version.article_id == article_id)
+        .order_by(Version.created_at.desc())
+        .all()
+    )
     return versions
 
 

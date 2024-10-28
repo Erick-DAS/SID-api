@@ -18,7 +18,7 @@ from app.schemas.article import (
 )
 from app.models import Article, SectionName, Version, User
 
-from app.logger import logger # noqa: F401
+from app.logger import logger  # noqa: F401
 
 from uuid import UUID
 

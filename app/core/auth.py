@@ -14,7 +14,7 @@ import app.core.config as cfg
 from app.database import get_db
 from app.crud.user import get_user_by_email
 from app.models import User, UserRole
-from app.logger import logger # noqa: F401
+from app.logger import logger  # noqa: F401
 
 LOGIN_ROUTE = "/users/token"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 2  # 2 hours

@@ -20,7 +20,7 @@ from app.core.auth import (
     Token,
     ACCESS_TOKEN_EXPIRE_MINUTES,
 )
-from app.logger import logger # noqa: F401
+from app.logger import logger  # noqa: F401
 
 app = APIRouter()
 
