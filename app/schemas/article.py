@@ -17,17 +17,20 @@ class ArticleSearch(PyEnum):
     AUTHOR = "author name"
     CONTENT = "content"
 
+
 class ArticleMain(BaseModel):
     title: str
     section: str
     content: str
     updated_at: datetime
 
+
 class ArticleCreate(BaseModel):
     title: str
     section: Optional[str]
     author_id: str
     content: str
+
 
 class ArticleUpdate(BaseModel):
     title: Optional[str]

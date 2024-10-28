@@ -54,7 +54,8 @@ def get_user_articles(
     for article in articles:
         public_articles.append(ArticlePublic(**article.__dict__))
 
-    return articles
+    return public_articles
+
 
 @app.get("/article/show/{article_id}", response_model=ArticleMain)
 def show_article(article_id: str, db: Session = Depends(get_db)):
@@ -64,12 +65,17 @@ def show_article(article_id: str, db: Session = Depends(get_db)):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Article not found"
         )
-    
+
     return ArticleMain(**article.__dict__)
+
 
 @app.post("/article/create/", response_model=ArticlePublic)
 def create_article(article: ArticleCreate, db: Session = Depends(get_current_user)):
-    preview = article.content[:300] + " ..." if len(article.content) > 300 else article.content
+    preview = (
+        article.content[:300] + " ..."
+        if len(article.content) > 300
+        else article.content
+    )
 
     new_article = Article(
         id=str(uuid4()),
@@ -79,7 +85,7 @@ def create_article(article: ArticleCreate, db: Session = Depends(get_current_use
         created_at=datetime.now(),
         updated_at=datetime.now(),
         preview=preview,
-        author_id=article.author_id
+        author_id=article.author_id,
     )
     article_in_db = article_crud.create_article(db=db, article=new_article)
 
@@ -87,17 +93,23 @@ def create_article(article: ArticleCreate, db: Session = Depends(get_current_use
 
 
 @app.post("/article/update/{article_id}/", response_model=ArticlePublic)
-def update_article(article_id: str, article_data: ArticleUpdate, db: Session = Depends(get_current_user)):
+def update_article(
+    article_id: str,
+    article_data: ArticleUpdate,
+    db: Session = Depends(get_current_user),
+):
     article = article_crud.get_article_by_id(db=db, id=article_id)
     if article is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Article not found"
         )
-    
+
     deprecated_article = article_crud.get_article_by_id(db=db, id=article_id)
     last_version = version_crud.get_latest_version_by_article_id(db=db, id=article_id)
 
-    newest_version_number = 1 if last_version is None else last_version.version_number + 1
+    newest_version_number = (
+        1 if last_version is None else last_version.version_number + 1
+    )
 
     newest_version = Version(
         id=str(uuid4()),
@@ -108,11 +120,15 @@ def update_article(article_id: str, article_data: ArticleUpdate, db: Session = D
         content=deprecated_article.content,
         article_id=deprecated_article.id,
         editor_id=article_data.editor_id,
-        version_number=newest_version_number
+        version_number=newest_version_number,
     )
     version_in_db = version_crud.create_version(db=db, version=newest_version)
 
-    preview = article_data.content[:300] + " ..." if len(article_data.content) > 300 else article_data.content
+    preview = (
+        article_data.content[:300] + " ..."
+        if len(article_data.content) > 300
+        else article_data.content
+    )
     new_article_data = Article(
         id=None,
         title=article_data.title,
@@ -121,8 +137,10 @@ def update_article(article_id: str, article_data: ArticleUpdate, db: Session = D
         created_at=None,
         updated_at=datetime.now(),
         preview=preview,
-        author_id=None
+        author_id=None,
     )
-    article_in_db = article_crud.update_article(db=db, id=article_id, new_article_data=new_article_data)
+    article_in_db = article_crud.update_article(
+        db=db, id=article_id, new_article_data=new_article_data
+    )
 
     return ArticlePublic(**article_in_db.__dict__)

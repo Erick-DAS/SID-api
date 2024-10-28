@@ -115,15 +115,17 @@ def get_article_by_id(db: Session, id: str):
     article = db.query(Article).filter(Article.id == id).first()
     return article
 
+
 def create_article(db: Session, article: Article):
     db.add(article)
     db.commit()
     db.refresh(article)
     return article
 
+
 def update_article(db: Session, id: str, new_article_data: Article):
     article = get_article_by_id(db=db, id=id)
-    
+
     article.title = new_article_data.title
     article.section = new_article_data.section
     article.preview = new_article_data.preview
