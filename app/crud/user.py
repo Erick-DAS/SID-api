@@ -3,7 +3,7 @@ from sqlalchemy import or_
 from typing import List
 
 from app.models import User, UserRole
-from app.logger import logger
+from app.logger import logger # noqa: F401
 
 
 def get_user_by_id(db: Session, id: str) -> User:

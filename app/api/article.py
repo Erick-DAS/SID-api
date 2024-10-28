@@ -9,10 +9,16 @@ import app.crud.article as article_crud
 import app.crud.version as version_crud
 from app.core.auth import get_current_approved_user
 from app.database import get_db
-from app.schemas.article import ArticleCreate, ArticlePublic, ArticleSearch, ArticleMain, ArticleUpdate
+from app.schemas.article import (
+    ArticleCreate,
+    ArticlePublic,
+    ArticleSearch,
+    ArticleMain,
+    ArticleUpdate,
+)
 from app.models import Article, SectionName, Version, User
 
-from app.logger import logger
+from app.logger import logger # noqa: F401
 
 from uuid import UUID
 
@@ -44,6 +50,7 @@ def search_articles(
 
     return articles
 
+
 @app.get("/{user_id}", response_model=List[ArticlePublic])
 def get_user_articles(
     user_id: str | UUID,
@@ -72,7 +79,11 @@ def show_article(article_id: str, db: Session = Depends(get_db)):
 
 
 @app.post("", response_model=ArticlePublic)
-async def create_article(article: ArticleCreate, editor: Annotated[User, Depends(get_current_approved_user)], db: Session = Depends(get_db)):
+async def create_article(
+    article: ArticleCreate,
+    editor: Annotated[User, Depends(get_current_approved_user)],
+    db: Session = Depends(get_db),
+):
     preview = (
         article.content[:300] + " ..."
         if len(article.content) > 300
@@ -99,14 +110,14 @@ async def create_article(article: ArticleCreate, editor: Annotated[User, Depends
 async def update_article(
     article_data: ArticleUpdate,
     editor: Annotated[User, Depends(get_current_approved_user)],
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     deprecated_article = article_crud.get_article_by_id(db=db, id=article_data.id)
     if deprecated_article is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Article not found"
         )
-    
+
     preview = (
         article_data.content[:300] + " ..."
         if len(article_data.content) > 300
@@ -123,7 +134,9 @@ async def update_article(
         db=db, id=article_data.id, new_article_data=new_article_data
     )
 
-    last_version = version_crud.get_latest_version_by_article_id(db=db, article_id=article_data.id)
+    last_version = version_crud.get_latest_version_by_article_id(
+        db=db, article_id=article_data.id
+    )
 
     newest_version_number = (
         1 if last_version is None else last_version.version_number + 1
@@ -143,8 +156,10 @@ async def update_article(
 
     version_crud.create_version(db=db, version=newest_version)
 
-    return ArticleUpdate(id=article_in_db.id,
-                        title=article_in_db.title,
-                        section=article_in_db.section,
-                        content=article_in_db.content,
-                        author_name=editor.full_name)
+    return ArticleUpdate(
+        id=article_in_db.id,
+        title=article_in_db.title,
+        section=article_in_db.section,
+        content=article_in_db.content,
+        author_name=editor.full_name,
+    )
