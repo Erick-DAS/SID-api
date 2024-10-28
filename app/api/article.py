@@ -95,7 +95,11 @@ def update_article(article_id: str, article_data: ArticleUpdate, db: Session = D
         )
     
     deprecated_article = article_crud.get_article_by_id(db=db, id=article_id)
-    deprecated_version = Version(
+    last_version = version_crud.get_latest_version_by_article_id(db=db, id=article_id)
+
+    newest_version_number = 1 if last_version is None else last_version.version_number + 1
+
+    newest_version = Version(
         id=str(uuid4()),
         created_at=deprecated_article.updated_at,
         title=deprecated_article.title,
@@ -103,9 +107,10 @@ def update_article(article_id: str, article_data: ArticleUpdate, db: Session = D
         section=deprecated_article.section,
         content=deprecated_article.content,
         article_id=deprecated_article.id,
-        editor_id=article_data.editor_id
+        editor_id=article_data.editor_id,
+        version_number=newest_version_number
     )
-    version_in_db = version_crud.create_version(db=db, version=deprecated_version)
+    version_in_db = version_crud.create_version(db=db, version=newest_version)
 
     preview = article_data.content[:300] + " ..." if len(article_data.content) > 300 else article_data.content
     new_article_data = Article(
