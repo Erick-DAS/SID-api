@@ -2,6 +2,8 @@ from pydantic import BaseModel
 from enum import Enum as PyEnum
 from datetime import datetime
 from typing import Optional
+from uuid import UUID
+from app.models import SectionName
 
 
 class ArticlePublic(BaseModel):
@@ -27,13 +29,12 @@ class ArticleMain(BaseModel):
 
 class ArticleCreate(BaseModel):
     title: str
-    section: Optional[str]
-    author_id: str
+    section: SectionName
     content: str
 
 
 class ArticleUpdate(BaseModel):
+    id: UUID
     title: Optional[str]
-    section: Optional[str]
-    editor_id: str
+    section: Optional[SectionName]
     content: Optional[str]

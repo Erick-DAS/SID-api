@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List
+from typing import List, Annotated
 from uuid import uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -7,10 +7,12 @@ from sqlalchemy.orm import Session
 
 import app.crud.article as article_crud
 import app.crud.version as version_crud
-from app.core.auth import get_current_user
+from app.core.auth import get_current_approved_user
 from app.database import get_db
 from app.schemas.article import ArticleCreate, ArticlePublic, ArticleSearch, ArticleMain, ArticleUpdate
-from app.models import Article, SectionName, Version
+from app.models import Article, SectionName, Version, User
+
+from app.logger import logger
 
 from uuid import UUID
 
@@ -57,7 +59,7 @@ def get_user_articles(
     return public_articles
 
 
-@app.get("/article/show/{article_id}", response_model=ArticleMain)
+@app.get("/{article_id}", response_model=ArticleMain)
 def show_article(article_id: str, db: Session = Depends(get_db)):
     article = article_crud.get_article_by_id(db=db, id=article_id)
 
@@ -69,8 +71,8 @@ def show_article(article_id: str, db: Session = Depends(get_db)):
     return ArticleMain(**article.__dict__)
 
 
-@app.post("/article/create/", response_model=ArticlePublic)
-def create_article(article: ArticleCreate, db: Session = Depends(get_current_user)):
+@app.post("", response_model=ArticlePublic)
+async def create_article(article: ArticleCreate, editor: Annotated[User, Depends(get_current_approved_user)], db: Session = Depends(get_db)):
     preview = (
         article.content[:300] + " ..."
         if len(article.content) > 300
@@ -80,32 +82,48 @@ def create_article(article: ArticleCreate, db: Session = Depends(get_current_use
     new_article = Article(
         id=str(uuid4()),
         title=article.title,
-        section=article.section,
+        section=article.section.name,
         content=article.content,
         created_at=datetime.now(),
         updated_at=datetime.now(),
         preview=preview,
-        author_id=article.author_id,
+        author_id=editor.id,
     )
+
     article_in_db = article_crud.create_article(db=db, article=new_article)
 
-    return ArticlePublic(**article_in_db.__dict__)
+    return ArticlePublic(**article_in_db.__dict__, author_name=editor.full_name)
 
 
-@app.post("/article/update/{article_id}/", response_model=ArticlePublic)
-def update_article(
-    article_id: str,
+@app.put("/{article_id}", response_model=ArticleUpdate)
+async def update_article(
     article_data: ArticleUpdate,
-    db: Session = Depends(get_current_user),
+    editor: Annotated[User, Depends(get_current_approved_user)],
+    db: Session = Depends(get_db)
 ):
-    article = article_crud.get_article_by_id(db=db, id=article_id)
-    if article is None:
+    deprecated_article = article_crud.get_article_by_id(db=db, id=article_data.id)
+    if deprecated_article is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Article not found"
         )
+    
+    preview = (
+        article_data.content[:300] + " ..."
+        if len(article_data.content) > 300
+        else article_data.content
+    )
+    new_article_data = Article(
+        title=article_data.title,
+        section=article_data.section.name,
+        content=article_data.content,
+        updated_at=datetime.now(),
+        preview=preview,
+    )
+    article_in_db = article_crud.update_article(
+        db=db, id=article_data.id, new_article_data=new_article_data
+    )
 
-    deprecated_article = article_crud.get_article_by_id(db=db, id=article_id)
-    last_version = version_crud.get_latest_version_by_article_id(db=db, id=article_id)
+    last_version = version_crud.get_latest_version_by_article_id(db=db, article_id=article_data.id)
 
     newest_version_number = (
         1 if last_version is None else last_version.version_number + 1
@@ -116,31 +134,17 @@ def update_article(
         created_at=deprecated_article.updated_at,
         title=deprecated_article.title,
         preview=deprecated_article.preview,
-        section=deprecated_article.section,
+        section=deprecated_article.section.name,
         content=deprecated_article.content,
         article_id=deprecated_article.id,
-        editor_id=article_data.editor_id,
+        editor_id=editor.id,
         version_number=newest_version_number,
     )
-    version_in_db = version_crud.create_version(db=db, version=newest_version)
 
-    preview = (
-        article_data.content[:300] + " ..."
-        if len(article_data.content) > 300
-        else article_data.content
-    )
-    new_article_data = Article(
-        id=None,
-        title=article_data.title,
-        section=article_data.section,
-        content=article_data.content,
-        created_at=None,
-        updated_at=datetime.now(),
-        preview=preview,
-        author_id=None,
-    )
-    article_in_db = article_crud.update_article(
-        db=db, id=article_id, new_article_data=new_article_data
-    )
+    version_crud.create_version(db=db, version=newest_version)
 
-    return ArticlePublic(**article_in_db.__dict__)
+    return ArticleUpdate(id=article_in_db.id,
+                        title=article_in_db.title,
+                        section=article_in_db.section,
+                        content=article_in_db.content,
+                        author_name=editor.full_name)

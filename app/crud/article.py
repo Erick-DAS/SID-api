@@ -111,20 +111,21 @@ def get_articles_by_section(db: Session, section: SectionName | None) -> Article
         )
         for article in articles
     ]
-def get_article_by_id(db: Session, id: str):
+
+def get_article_by_id(db: Session, id: str) -> Article:
     article = db.query(Article).filter(Article.id == id).first()
     return article
 
 
-def create_article(db: Session, article: Article):
+def create_article(db: Session, article: Article) -> Article:
     db.add(article)
     db.commit()
     db.refresh(article)
     return article
 
 
-def update_article(db: Session, id: str, new_article_data: Article):
-    article = get_article_by_id(db=db, id=id)
+def update_article(db: Session, id: str, new_article_data: Article) -> Article:
+    article = get_article_by_id(db=db, id=id) # Nao sei se eh a melhor ideia as funcoes do crud dependerem umas das outras
 
     article.title = new_article_data.title
     article.section = new_article_data.section

@@ -13,6 +13,10 @@ tags_metadata = [
         "name": "Articles",
         "description": "_Manage articles_",
     },
+    {
+        "name": "Versions",
+        "description": "_Manage article versions_",
+    },
 ]
 
 app = FastAPI(debug=True, openapi_tags=tags_metadata)
