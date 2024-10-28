@@ -9,6 +9,7 @@ from app.schemas.article import ArticlePublic
 
 app = APIRouter()
 
+
 @app.get("/article/search/", response_model=List[ArticlePublic])
 def search_articles(title: str | None = None, db: Session = Depends(get_db)):
     articles = article_crud.get_articles_by_title(db=db, title=title)
@@ -21,6 +22,5 @@ def search_articles(title: str | None = None, db: Session = Depends(get_db)):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="No articles found"
         )
-    
+
     return articles
-    
