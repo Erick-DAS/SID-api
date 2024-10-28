@@ -132,13 +132,13 @@ def downgrade() -> None:
     )
     op.alter_column(
         "articles",
-        "name",
+        "section",
         existing_type=section_name_enum,
         type_=sa.VARCHAR(),
         postgresql_using="section::varchar",
         existing_nullable=False,
     )
-    
+
     # ### end Alembic commands ###
 
     # ### MANUALLY DOWNGRADE USER ROLE ###
