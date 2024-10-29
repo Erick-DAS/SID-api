@@ -26,7 +26,7 @@ app = APIRouter()
 
 
 @app.get("", response_model=List[ArticlePublic])
-def search_articles(
+async def search_articles(
     search_type: ArticleSearch | None = None,
     search: str | None = None,
     section: SectionName | None = None,
@@ -52,7 +52,7 @@ def search_articles(
 
 
 @app.get("/{user_id}", response_model=List[ArticlePublic])
-def get_user_articles(
+async def get_user_articles(
     user_id: str | UUID,
     db: Session = Depends(get_db),
 ):
@@ -67,7 +67,7 @@ def get_user_articles(
 
 
 @app.get("/{article_id}", response_model=ArticleMain)
-def show_article(article_id: str, db: Session = Depends(get_db)):
+async def show_article(article_id: str, db: Session = Depends(get_db)):
     article = article_crud.get_article_by_id(db=db, id=article_id)
 
     if article is None:

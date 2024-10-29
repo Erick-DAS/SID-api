@@ -13,7 +13,7 @@ app = APIRouter()
 
 
 @app.get("/{article_id}", response_model=List[VersionPublic])
-def search_articles(
+async def search_articles(
     article_id: str,
     _: Annotated[User, Depends(get_current_approved_user)],
     db: Session = Depends(get_db),
