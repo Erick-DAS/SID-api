@@ -2,7 +2,7 @@ services:
   localdb:
     image: postgres:16.2
     ports:
-      - "5432:5432"
+      - "65432:65432"
     volumes:
       - ./db/dumps:/app-db-dumps
     environment:
