@@ -130,9 +130,6 @@ async def update_article(
         updated_at=datetime.now(),
         preview=preview,
     )
-    article_in_db = article_crud.update_article(
-        db=db, id=article_data.id, new_article_data=new_article_data
-    )
 
     last_version = version_crud.get_latest_version_by_article_id(
         db=db, article_id=article_data.id
@@ -155,6 +152,10 @@ async def update_article(
     )
 
     version_crud.create_version(db=db, version=newest_version)
+
+    article_in_db = article_crud.update_article(
+        db=db, id=article_data.id, new_article_data=new_article_data
+    )
 
     return ArticleUpdate(
         id=article_in_db.id,
