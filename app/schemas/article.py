@@ -7,6 +7,7 @@ from app.models import SectionName
 
 
 class ArticlePublic(BaseModel):
+    id: UUID
     title: str
     preview: str
     section: str

@@ -1,4 +1,5 @@
 from sqlalchemy.orm import Session, joinedload
+from sqlalchemy import or_
 
 from app.models import Article, SectionName, User
 from app.schemas.article import ArticlePublic
@@ -20,7 +21,7 @@ def get_articles_by_content(
     query = (
         db.query(Article)
         .options(joinedload(Article.user))
-        .filter(Article.content.ilike(f"%{content}%"))
+        .filter(or_(Article.content.ilike(f"%{content}%"), Article.title.ilike(f"%{content}%")))
     )
 
     if section is not None:
