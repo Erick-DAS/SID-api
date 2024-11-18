@@ -20,6 +20,9 @@ passlib = {extras = ["bcrypt"], version = "1.7.4"}
 py-bcrypt = "0.4"
 pyjwt = "^2.9.0"
 ruff = "0.6.9"
+pandas = "^2.2.3"
+pyarrow = "^18.0.0"
+geopandas = "^1.0.1"
 
 
 [tool.poetry.group.dev.dependencies]
