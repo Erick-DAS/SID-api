@@ -16,12 +16,24 @@ def get_articles_by_title(db: Session, title: str | None) -> ArticlePublic:
 
 
 def get_articles_by_content(
-    db: Session, content: str, section: SectionName | None = None
+    db: Session,
+    content: str,
+    section: SectionName | None = None,
+    skip: int = 0,
+    limit: int = 100,
 ) -> ArticlePublic:
     query = (
         db.query(Article)
         .options(joinedload(Article.user))
-        .filter(or_(Article.content.ilike(f"%{content}%"), Article.title.ilike(f"%{content}%")))
+        .filter(
+            or_(
+                Article.content.ilike(f"%{content}%"),
+                Article.title.ilike(f"%{content}%"),
+            )
+        )
+        .order_by(Article.updated_at.desc())
+        .offset(skip)
+        .limit(limit)
     )
 
     if section is not None:
@@ -45,13 +57,20 @@ def get_articles_by_content(
 
 
 def get_articles_by_author_name_search(
-    db: Session, author: str, section: SectionName | None = None
+    db: Session,
+    author: str,
+    section: SectionName | None = None,
+    skip: int = 0,
+    limit: int = 100,
 ) -> ArticlePublic:
     query = (
         db.query(Article)
         .join(User)
         .options(joinedload(Article.user))
         .filter(User.full_name.ilike(f"%{author}%"))
+        .order_by(Article.updated_at.desc())
+        .offset(skip)
+        .limit(limit)
     )
 
     if section is not None:
@@ -94,8 +113,16 @@ def get_articles_by_author_id(db: Session, user_id: str) -> ArticlePublic:
     ]
 
 
-def get_articles_by_section(db: Session, section: SectionName | None) -> ArticlePublic:
-    query = db.query(Article).options(joinedload(Article.user))
+def get_articles_by_section(
+    db: Session, section: SectionName | None, skip: int = 0, limit: int = 100
+) -> ArticlePublic:
+    query = (
+        db.query(Article)
+        .options(joinedload(Article.user))
+        .order_by(Article.updated_at.desc())
+        .offset(skip)
+        .limit(limit)
+    )
 
     if section is not None:
         query = query.filter(Article.section == section.name)

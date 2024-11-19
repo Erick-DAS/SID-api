@@ -27,6 +27,8 @@ app = APIRouter()
 
 @app.get("", response_model=List[ArticlePublic])
 async def search_articles(
+    skip: int | None = None,
+    limit: int | None = None,
     search_type: ArticleSearch | None = None,
     search: str | None = None,
     section: SectionName | None = None,
@@ -34,14 +36,16 @@ async def search_articles(
 ):
     if search_type == ArticleSearch.AUTHOR:
         articles = article_crud.get_articles_by_author_name_search(
-            db=db, author=search, section=section
+            db=db, author=search, section=section, skip=skip, limit=limit
         )
     elif search_type == ArticleSearch.CONTENT:
         articles = article_crud.get_articles_by_content(
-            db=db, content=search, section=section
+            db=db, content=search, section=section, skip=skip, limit=limit
         )
     else:
-        articles = article_crud.get_articles_by_section(db=db, section=section)
+        articles = article_crud.get_articles_by_section(
+            db=db, section=section, skip=skip, limit=limit
+        )
 
     public_articles = []
 
