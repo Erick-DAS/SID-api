@@ -220,7 +220,7 @@ async def get_users(
 
     return [UserADMView(**user.__dict__) for user in users]
 
-@app.get("/articles/{user_id}", response_model=List[ArticlePublic])
+@app.get("/{user_id}/articles", response_model=List[ArticlePublic])
 async def get_user_articles(
     user_id: str | UUID,
     db: Session = Depends(get_db),
