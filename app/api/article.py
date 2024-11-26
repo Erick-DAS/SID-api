@@ -54,22 +54,6 @@ async def search_articles(
 
     return articles
 
-
-@app.get("/{user_id}", response_model=List[ArticlePublic])
-async def get_user_articles(
-    user_id: str | UUID,
-    db: Session = Depends(get_db),
-):
-    articles = article_crud.get_articles_by_author_id(db=db, user_id=str(user_id))
-
-    public_articles = []
-
-    for article in articles:
-        public_articles.append(ArticlePublic(**article.__dict__))
-
-    return public_articles
-
-
 @app.get("/{article_id}", response_model=ArticleMain)
 async def show_article(article_id: str, db: Session = Depends(get_db)):
     article = article_crud.get_article_by_id(db=db, id=article_id)

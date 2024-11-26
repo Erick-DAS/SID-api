@@ -6,10 +6,14 @@ from sqlalchemy.orm import Session
 from datetime import timedelta
 from typing import List
 
+from uuid import UUID
+
 import app.crud.user as user_crud
 from app.database import get_db
 from app.models import User, UserRole
 from app.schemas.user import UserPublic, UserForm, UserUpdateForm, UserADMView
+from app.schemas.article import ArticlePublic
+import app.crud.article as article_crud
 from app.core.auth import (
     get_current_user,
     get_current_admin,
@@ -215,3 +219,25 @@ async def get_users(
     )
 
     return [UserADMView(**user.__dict__) for user in users]
+
+@app.get("/articles/{user_id}", response_model=List[ArticlePublic])
+async def get_user_articles(
+    user_id: str | UUID,
+    db: Session = Depends(get_db),
+):
+    user_by_id = user_crud.get_user_by_id(db, user_id)
+
+    if user_by_id is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found",
+        )
+
+    articles = article_crud.get_articles_by_author_id(db=db, user_id=str(user_id))
+
+    public_articles = []
+
+    for article in articles:
+        public_articles.append(ArticlePublic(**article.__dict__))
+
+    return public_articles
