@@ -13,6 +13,7 @@ from app.schemas.article import (
     ArticleCreate,
     ArticlePublic,
     ArticleSearch,
+    ArticleSearchResponse,
     ArticleMain,
     ArticleUpdate,
 )
@@ -25,7 +26,7 @@ from uuid import UUID
 app = APIRouter()
 
 
-@app.get("", response_model=List[ArticlePublic])
+@app.get("", response_model=ArticleSearchResponse)
 async def search_articles(
     skip: int | None = None,
     limit: int | None = None,
@@ -35,14 +36,23 @@ async def search_articles(
     db: Session = Depends(get_db),
 ):
     if search_type == ArticleSearch.AUTHOR:
+        total_articles = article_crud.get_articles_by_author_name_search(
+            db=db, author=search, section=section
+        )
         articles = article_crud.get_articles_by_author_name_search(
             db=db, author=search, section=section, skip=skip, limit=limit
         )
     elif search_type == ArticleSearch.CONTENT:
+        total_articles = article_crud.get_articles_by_content(
+            db=db, content=search, section=section
+        )
         articles = article_crud.get_articles_by_content(
             db=db, content=search, section=section, skip=skip, limit=limit
         )
     else:
+        total_articles = article_crud.get_articles_by_section(
+            db=db, section=section
+        )
         articles = article_crud.get_articles_by_section(
             db=db, section=section, skip=skip, limit=limit
         )
@@ -52,7 +62,7 @@ async def search_articles(
     for article in articles:
         public_articles.append(ArticlePublic(**article.__dict__))
 
-    return articles
+    return ArticleSearchResponse(articles=public_articles, total=len(total_articles))
 
 @app.get("/{article_id}", response_model=ArticleMain)
 async def show_article(article_id: str, db: Session = Depends(get_db)):

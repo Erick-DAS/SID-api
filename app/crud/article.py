@@ -20,7 +20,7 @@ def get_articles_by_content(
     content: str,
     section: SectionName | None = None,
     skip: int = 0,
-    limit: int = 100,
+    limit: int = 10000,
 ) -> ArticlePublic:
     query = (
         db.query(Article)
@@ -61,7 +61,7 @@ def get_articles_by_author_name_search(
     author: str,
     section: SectionName | None = None,
     skip: int = 0,
-    limit: int = 100,
+    limit: int = 10000,
 ) -> ArticlePublic:
     query = (
         db.query(Article)
@@ -114,7 +114,7 @@ def get_articles_by_author_id(db: Session, user_id: str) -> ArticlePublic:
 
 
 def get_articles_by_section(
-    db: Session, section: SectionName | None, skip: int = 0, limit: int = 100
+    db: Session, section: SectionName | None, skip: int = 0, limit: int = 10000
 ) -> ArticlePublic:
     query = (
         db.query(Article)
