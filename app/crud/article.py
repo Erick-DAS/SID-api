@@ -1,9 +1,9 @@
-from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import or_
+from sqlalchemy.orm import Session, joinedload
 
+from app.logger import logger  # noqa: F401
 from app.models import Article, SectionName, User
 from app.schemas.article import ArticlePublic
-from app.logger import logger  # noqa: F401
 
 
 def get_articles_by_title(db: Session, title: str | None) -> ArticlePublic:
@@ -32,12 +32,12 @@ def get_articles_by_content(
             )
         )
         .order_by(Article.updated_at.desc())
-        .offset(skip)
-        .limit(limit)
     )
 
     if section is not None:
         query = query.filter(Article.section == section.name)
+
+    query = query.offset(skip).limit(limit)
 
     articles = query.all()
 
@@ -69,12 +69,12 @@ def get_articles_by_author_name_search(
         .options(joinedload(Article.user))
         .filter(User.full_name.ilike(f"%{author}%"))
         .order_by(Article.updated_at.desc())
-        .offset(skip)
-        .limit(limit)
     )
 
     if section is not None:
         query = query.filter(Article.section == section.name)
+
+    query = query.offset(skip).limit(limit)
 
     articles = query.all()
 
@@ -120,12 +120,12 @@ def get_articles_by_section(
         db.query(Article)
         .options(joinedload(Article.user))
         .order_by(Article.updated_at.desc())
-        .offset(skip)
-        .limit(limit)
     )
 
     if section is not None:
         query = query.filter(Article.section == section.name)
+
+    query = query.offset(skip).limit(limit)
 
     articles = query.all()
 
