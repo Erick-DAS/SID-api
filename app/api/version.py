@@ -1,21 +1,18 @@
-from typing import List, Annotated
+from typing import Annotated, List
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.models import User
-from app.core.auth import get_current_approved_user
 import app.crud.version as version_crud
 from app.database import get_db
-from app.schemas.version import VersionPublic
+from app.schemas.version import VersionMain, VersionPublic
 
 app = APIRouter()
 
 
-@app.get("/{article_id}", response_model=List[VersionPublic])
-async def search_articles(
+@app.get("", response_model=List[VersionPublic])
+async def search_versions(
     article_id: str,
-    _: Annotated[User, Depends(get_current_approved_user)],
     db: Session = Depends(get_db),
 ):
     versions = version_crud.get_versions_by_article_id(db=db, article_id=article_id)
@@ -31,3 +28,15 @@ async def search_articles(
         )
 
     return versions
+
+
+@app.get("/{version_id}", response_model=VersionMain)
+async def show_version(version_id: str, db: Session = Depends(get_db)):
+    article = version_crud.get_version_by_id(db=db, id=version_id)
+
+    if article is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Article not found"
+        )
+
+    return VersionMain(**article.__dict__)
