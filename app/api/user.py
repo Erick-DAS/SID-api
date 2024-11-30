@@ -43,14 +43,13 @@ async def get_user_me(current_user: Annotated[User, Depends(get_current_user)]):
     except Exception:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Internal server error",
+            detail="Erro interno do servidor",
         )
 
 
 @app.get("/{user_id}", response_model=UserPublic)
 async def get_user(
     user_id: str,
-    _: Annotated[str, Depends(get_current_admin)],
     db: Session = Depends(get_db),
 ):
     try:
@@ -58,7 +57,7 @@ async def get_user(
         logger.debug(f"Found user email: {found_user.email}")
         if found_user is None:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+                status_code=status.HTTP_404_NOT_FOUND, detail="Usuário não encontrado"
             )
         return UserPublic(**found_user.__dict__)
     except HTTPException as e:
@@ -70,7 +69,7 @@ async def get_user(
     except Exception:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Internal server error",
+            detail="Erro interno do servidor",
         )
 
 
@@ -84,7 +83,7 @@ async def login(
     if not user or not verify_password(form_data.password, user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username or password",
+            detail="E-mail ou senha incorretos",
             headers={"WWW-Authenticate": "Bearer"},
         )
 
@@ -106,13 +105,13 @@ async def create_user(form: UserForm, session: Session = Depends(get_db)):
     if user_by_email:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="The given e-mail is already registered",
+            detail="O e-mail dado já está registrado.",
         )
 
     if not check_password_format(form.password):
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail="Password does not meet the requirements: must be between 8 and 20 characters, contain at least one digit, one uppercase letter and one lowercase letter",
+            detail="A senha precisa entre 8 e 20 caracteres, conter pelo menos uma letra maiúscula, uma letra minúscula e um número",
         )
 
     hashed_password = get_password_hash(form.password)
@@ -140,13 +139,13 @@ async def delete_user(
         found_user = user_crud.get_user_by_id(db=db, id=user_id)
         if found_user is None:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+                status_code=status.HTTP_404_NOT_FOUND, detail="Usuário não encontrado"
             )
         
         if found_user.role == UserRole.ADMIN and current_admin.email != found_user.email:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="Cannot delete another admin user",
+                detail="Um usuário administrador só pode ser deletado por ele mesmo",
             )
 
         user_crud.delete_user(db=db, user=found_user)
@@ -161,7 +160,7 @@ async def delete_user(
     except Exception:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Internal server error",
+            detail="Erro interno do servidor",
         )
 
 
@@ -176,20 +175,20 @@ async def update_user(
         found_user = user_crud.get_user_by_id(db=db, id=user_id)
         if found_user is None:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+                status_code=status.HTTP_404_NOT_FOUND, detail="Usuário não encontrado"
             )
         
         if found_user.role == UserRole.ADMIN and current_admin.email != found_user.email:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="Cannot edit another admin's info",
+                detail="Um usuário administrador só pode ser editado por ele mesmo",
             )
 
         if form.password:
             if not check_password_format(form.password):
                 raise HTTPException(
                     status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                    detail="Password does not meet the requirements: must be between 8 and 20 characters, contain at least one digit, one uppercase letter and one lowercase letter",
+                    detail="A senha precisa entre 8 e 20 caracteres, conter pelo menos uma letra maiúscula, uma letra minúscula e um número",
                 )
 
             found_user.hashed_password = get_password_hash(form.password)
@@ -213,7 +212,7 @@ async def update_user(
     except Exception:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Internal server error",
+            detail="Erro interno do servidor",
         )
 
 
@@ -247,7 +246,7 @@ async def get_user_articles(
     if user_by_id is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found",
+            detail="Usuário não encontrado",
         )
 
     articles = article_crud.get_articles_by_author_id(db=db, user_id=str(user_id))
