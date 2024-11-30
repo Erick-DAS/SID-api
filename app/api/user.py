@@ -11,7 +11,7 @@ from uuid import UUID
 import app.crud.user as user_crud
 from app.database import get_db
 from app.models import User, UserRole
-from app.schemas.user import UserPublic, UserForm, UserUpdateForm, UserADMView
+from app.schemas.user import UserPublic, UserForm, UserUpdateForm, UserADMView, UserADMViewWithPagination
 from app.schemas.article import ArticlePublic
 import app.crud.article as article_crud
 from app.core.auth import (
@@ -133,7 +133,7 @@ async def create_user(form: UserForm, session: Session = Depends(get_db)):
 @app.delete("/{user_id}", response_model=UserPublic)
 async def delete_user(
     user_id: str,
-    _: Annotated[str, Depends(get_current_admin)],
+    current_admin: Annotated[str, Depends(get_current_admin)],
     db: Session = Depends(get_db),
 ):
     try:
@@ -141,6 +141,12 @@ async def delete_user(
         if found_user is None:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+            )
+        
+        if found_user.role == UserRole.ADMIN and current_admin.email != found_user.email:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Cannot delete another admin user",
             )
 
         user_crud.delete_user(db=db, user=found_user)
@@ -163,7 +169,7 @@ async def delete_user(
 async def update_user(
     user_id: str,
     form: UserUpdateForm,
-    _: Annotated[str, Depends(get_current_admin)],
+    current_admin: Annotated[str, Depends(get_current_admin)],
     db: Session = Depends(get_db),
 ):
     try:
@@ -171,6 +177,12 @@ async def update_user(
         if found_user is None:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+            )
+        
+        if found_user.role == UserRole.ADMIN and current_admin.email != found_user.email:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Cannot edit another admin's info",
             )
 
         if form.password:
@@ -205,7 +217,7 @@ async def update_user(
         )
 
 
-@app.get("", response_model=List[UserADMView])
+@app.get("", response_model=UserADMViewWithPagination)
 async def get_users(
     _: Annotated[str, Depends(get_current_admin)],
     skip: int | None = None,
@@ -214,11 +226,16 @@ async def get_users(
     search: str | None = None,
     db: Session = Depends(get_db),
 ):
+    
+    total_users = user_crud.list_users(
+        db=db, role=filter_by_role, search=search
+    )
+
     users = user_crud.list_users(
         db=db, skip=skip, limit=limit, role=filter_by_role, search=search
     )
 
-    return [UserADMView(**user.__dict__) for user in users]
+    return UserADMViewWithPagination(users = [UserADMView(**user.__dict__) for user in users], total=len(total_users))
 
 @app.get("/{user_id}/articles", response_model=List[ArticlePublic])
 async def get_user_articles(

@@ -36,8 +36,8 @@ def list_users(
     role: UserRole | None = None,
     search: str | None = None,
 ) -> List[User]:
-    query = db.query(User).order_by(User.full_name.asc()).offset(skip).limit(limit)
-
+    query = db.query(User)
+    
     if role is not None:
         query = query.filter(User.role == role)
 
@@ -45,6 +45,8 @@ def list_users(
         query = query.filter(
             or_(User.full_name.ilike(f"%{search}%"), User.email.ilike(f"%{search}%"))
         )
+
+    query = query.order_by(User.full_name.asc()).offset(skip).limit(limit)
 
     users = query.all()
 

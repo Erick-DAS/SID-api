@@ -3,6 +3,8 @@ from pydantic import BaseModel
 from typing import Optional
 from app.models import UserRole
 
+from uuid import UUID
+
 
 class UserPublic(BaseModel):
     full_name: str
@@ -15,6 +17,11 @@ class UserADMView(UserPublic):
     email: str
     role: UserRole
     motivation: str
+    id: UUID
+
+class UserADMViewWithPagination(BaseModel):
+    users: list[UserADMView]
+    total: int
 
 
 class UserForm(BaseModel):
@@ -25,7 +32,7 @@ class UserForm(BaseModel):
 
 
 class UserUpdateForm(BaseModel):
-    full_name: Optional[str]
-    email: Optional[str]
-    password: Optional[str]
-    role: Optional[UserRole]
+    full_name: Optional[str] = None
+    email: Optional[str] = None
+    password: Optional[str] = None
+    role: Optional[UserRole] = None
