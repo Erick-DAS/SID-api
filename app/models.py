@@ -34,6 +34,9 @@ class User(Base):
         sa.Enum(UserRole), default=UserRole.ESPERANDO_APROVACAO, nullable=False
     )
     motivation = sa.Column(sa.String, nullable=False)
+    profession = sa.Column(sa.String, nullable=False)
+    bio = sa.Column(sa.String, nullable=False)
+    profile_picture = sa.Column(sa.String, nullable=True)
 
 
 class Section(Base):

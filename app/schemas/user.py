@@ -10,6 +10,10 @@ class UserPublic(BaseModel):
     full_name: str
     email: str
     role: UserRole
+    profile_picture: Optional[str] = None
+    bio: str
+    profession: str
+    id: UUID
 
 
 class UserADMView(UserPublic):
@@ -18,6 +22,7 @@ class UserADMView(UserPublic):
     role: UserRole
     motivation: str
     id: UUID
+
 
 class UserADMViewWithPagination(BaseModel):
     users: list[UserADMView]
@@ -29,10 +34,18 @@ class UserForm(BaseModel):
     email: str
     password: str
     motivation: str
+    bio: str
+    profession: str
 
 
-class UserUpdateForm(BaseModel):
+class UserUpdateAdminForm(BaseModel):
     full_name: Optional[str] = None
     email: Optional[str] = None
     password: Optional[str] = None
     role: Optional[UserRole] = None
+
+
+class UserUpdateNonAdminForm(BaseModel):
+    email: Optional[str] = None
+    bio: Optional[str] = None
+    profession: Optional[str] = None

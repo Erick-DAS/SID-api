@@ -20,6 +20,7 @@ passlib = {extras = ["bcrypt"], version = "1.7.4"}
 py-bcrypt = "0.4"
 pyjwt = "^2.9.0"
 ruff = "0.6.9"
+cloudinary = "^1.41.0"
 
 
 [tool.poetry.group.dev.dependencies]

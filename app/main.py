@@ -6,6 +6,16 @@ import app.api.user as user_api
 import app.api.version as version_api
 import app.api.data as data_api
 
+import cloudinary
+import cloudinary.uploader
+import app.core.config as cfg
+
+cloudinary.config(
+    cloud_name=cfg.CLOUDINARY_CLOUD_NAME,
+    api_key=cfg.CLOUDINARY_API_KEY,
+    api_secret=cfg.CLOUDINARY_API_SECRET,
+)
+
 tags_metadata = [
     {
         "name": "Users",
