@@ -1,6 +1,7 @@
+import re
 from datetime import datetime
-from typing import List, Annotated
-from uuid import uuid4
+from typing import Annotated, List
+from uuid import UUID, uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
@@ -9,19 +10,11 @@ import app.crud.article as article_crud
 import app.crud.version as version_crud
 from app.core.auth import get_current_approved_user
 from app.database import get_db
-from app.schemas.article import (
-    ArticleCreate,
-    ArticlePublic,
-    ArticleSearch,
-    ArticleSearchResponse,
-    ArticleMain,
-    ArticleUpdate,
-)
-from app.models import Article, SectionName, Version, User
-
 from app.logger import logger  # noqa: F401
-
-from uuid import UUID
+from app.models import Article, SectionName, User, Version
+from app.schemas.article import (ArticleCreate, ArticleMain, ArticlePublic,
+                                 ArticleSearch, ArticleSearchResponse,
+                                 ArticleUpdate)
 
 app = APIRouter()
 
@@ -81,10 +74,9 @@ async def create_article(
     editor: Annotated[User, Depends(get_current_approved_user)],
     db: Session = Depends(get_db),
 ):
+    plain_content = re.sub(r'<[^>]*>', '', article.content)
     preview = (
-        article.content[:300] + " ..."
-        if len(article.content) > 300
-        else article.content
+        plain_content[:100] + " ..." if len(plain_content) > 100 else plain_content
     )
 
     new_article = Article(
@@ -115,11 +107,11 @@ async def update_article(
             status_code=status.HTTP_404_NOT_FOUND, detail="Article not found"
         )
 
+    plain_content = re.sub(r'<[^>]*>', '', article_data.content)
     preview = (
-        article_data.content[:300] + " ..."
-        if len(article_data.content) > 300
-        else article_data.content
+        plain_content[:100] + " ..." if len(plain_content) > 100 else plain_content
     )
+    
     new_article_data = Article(
         title=article_data.title,
         section=article_data.section.name,
