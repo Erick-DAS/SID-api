@@ -10,18 +10,15 @@ from app.schemas.data import CensitaryValue
 
 app = APIRouter()
 
-BASE_CSV_DIR = Path("data/notification_count") 
+BASE_CSV_DIR = Path("data/notification_count")
 sisa_web_api_url = "https://vigent.saude.sp.gov.br/sisaweb_api/dados.php"
 
+
 @app.get("/sjrp_notifications", response_model=List[CensitaryValue])
-async def get_sjrp_notifications(
-    start_date: datetime,
-    end_date: datetime
-):
+async def get_sjrp_notifications(start_date: datetime, end_date: datetime):
     if start_date > end_date:
         raise HTTPException(
-            status_code=400,
-            detail="The start date must be before the end date."
+            status_code=400, detail="The start date must be before the end date."
         )
 
     aggregated_data: Dict[str, int] = {}
@@ -49,7 +46,7 @@ async def get_sjrp_notifications(
         except Exception as e:
             raise HTTPException(
                 status_code=500,
-                detail=f"Error processing file {file_path.name}: {str(e)}"
+                detail=f"Error processing file {file_path.name}: {str(e)}",
             )
 
         current_date = increment_month(current_date)
@@ -61,35 +58,35 @@ async def get_sjrp_notifications(
 
     return result
 
+
 @app.get("/sisa_web_properties", response_model=List[CensitaryValue])
-async def get_sisa_web_data(
-    start_date: datetime,
-    end_date: datetime
-):
-    
+async def get_sisa_web_data(start_date: datetime, end_date: datetime):
     inicio = start_date.strftime("%Y-%m-%d")
     final = end_date.strftime("%Y-%m-%d")
 
-    response = requests.get(url=f"{sisa_web_api_url}?tipo=4&id=471&exec=2&censitario=1&inicio={inicio}&final={final}")
+    response = requests.get(
+        url=f"{sisa_web_api_url}?tipo=4&id=471&exec=2&censitario=1&inicio={inicio}&final={final}"
+    )
 
     if response.status_code == 200:
         data = response.json()
     else:
         raise HTTPException(
             status_code=500,
-            detail=f"Error fetching data from SISA Web API: {response.text}"
+            detail=f"Error fetching data from SISA Web API: {response.text}",
         )
-    
+
     censitary_values = []
 
     for data_piece in data:
         censitary_code = data_piece["censitario"] + "P"
         censitary_values.append(
-            CensitaryValue(censitary_code=censitary_code, value=data_piece["trabalhados"])
+            CensitaryValue(
+                censitary_code=censitary_code, value=data_piece["trabalhados"]
+            )
         )
 
     return censitary_values
-
 
 
 def increment_month(date: datetime) -> datetime:

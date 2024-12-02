@@ -50,9 +50,7 @@ async def search_articles(
             db=db, content=search, section=section, skip=skip, limit=limit
         )
     else:
-        total_articles = article_crud.get_articles_by_section(
-            db=db, section=section
-        )
+        total_articles = article_crud.get_articles_by_section(db=db, section=section)
         articles = article_crud.get_articles_by_section(
             db=db, section=section, skip=skip, limit=limit
         )
@@ -63,6 +61,7 @@ async def search_articles(
         public_articles.append(ArticlePublic(**article.__dict__))
 
     return ArticleSearchResponse(articles=public_articles, total=len(total_articles))
+
 
 @app.get("/{article_id}", response_model=ArticleMain)
 async def show_article(article_id: str, db: Session = Depends(get_db)):

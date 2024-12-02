@@ -26,9 +26,9 @@ def get_versions_by_article_id(db: Session, article_id: str) -> VersionPublic:
         .order_by(Version.created_at.desc())
         .all()
     )
-    
+
     return [
-        VersionPublic (
+        VersionPublic(
             id=version.id,
             title=version.title,
             preview=version.preview,

@@ -15,9 +15,11 @@ class ArticlePublic(BaseModel):
     created_at: datetime
     updated_at: datetime
 
+
 class ArticleSearchResponse(BaseModel):
     articles: list[ArticlePublic]
     total: int
+
 
 class ArticleSearch(PyEnum):
     AUTHOR = "author name"
