@@ -4,10 +4,10 @@ API and database management for "Sistema de Informações sobre Dengue" (SID).
 This project is developed for PCS3643 (Laboratório de Engenharia de Software).
 
 Developed by:
-- [Erick Sousa]()
-- [Carlos Engler]()
-- [Henrique Eduardo]()
-- [Enzo Tassini]()
+- [Erick Sousa](https://github.com/Erick-DAS)
+- [Carlos Engler](https://github.com/henriqueedu2001)
+- [Henrique Eduardo](https://github.com/henriqueedu2001)
+- [Enzo Tassini](https://github.com/Enzo-Tssn)
 
 Read the following sections in order to start developing.
 
@@ -20,7 +20,7 @@ Read the following sections in order to start developing.
 
 ## Setup environment variables
 
-First of all, create a `.env` file sampled as the example `test.env`, setting values for database credentials.
+First of all, create a `.env` file sampled as the example `sample.env`, setting values for database credentials and other important variables.
 
 *Note: All the variables set there must be added to `app.core.config` to be accessed globally by the code.*
 
