@@ -176,3 +176,9 @@ def update_article(db: Session, id: str, new_article_data: Article) -> Article:
     db.commit()
     db.refresh(article)
     return article
+
+def delete_article(db: Session, id: str) -> Article:
+    article = get_article_by_id(db=db, id=id, full_content=True)
+    db.delete(article)
+    db.commit()
+    return article

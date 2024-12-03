@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 
 import app.crud.article as article_crud
 import app.crud.version as version_crud
-from app.core.auth import get_current_approved_user
+from app.core.auth import get_current_approved_user, get_current_admin
 from app.database import get_db
 from app.logger import logger  # noqa: F401
 from app.models import Article, SectionName, User, Version
@@ -164,3 +164,16 @@ async def update_article(
         content=article_in_db.content,
         author_name=editor.full_name,
     )
+
+@app.delete("/{article_id}", response_model=ArticleMain)
+async def remove_article(
+    article_id: str, _: Annotated[User, Depends(get_current_admin)], db: Session = Depends(get_db)
+):
+    article = article_crud.delete_article(db=db, id=article_id)
+
+    if article is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Article not found"
+        )
+
+    return ArticleMain(**article.__dict__)
