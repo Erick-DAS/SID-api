@@ -17,13 +17,13 @@ def create_version(db: Session, version: Version) -> Version:
 def get_version_by_id(db: Session, id: str) -> VersionMain:
     version = db.query(Version).filter(Version.id == id).first()
 
-    plain_content = re.sub(r'<[^>]*>', '', version.content)
+    plain_content = re.sub(r"<[^>]*>", "", version.content)
 
-    return VersionMain (
+    return VersionMain(
         title=version.title,
         content=plain_content,
         version_number=version.version_number,
-        created_at=version.created_at
+        created_at=version.created_at,
     )
 
 

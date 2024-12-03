@@ -12,9 +12,14 @@ from app.core.auth import get_current_approved_user
 from app.database import get_db
 from app.logger import logger  # noqa: F401
 from app.models import Article, SectionName, User, Version
-from app.schemas.article import (ArticleCreate, ArticleMain, ArticlePublic,
-                                 ArticleSearch, ArticleSearchResponse,
-                                 ArticleUpdate)
+from app.schemas.article import (
+    ArticleCreate,
+    ArticleMain,
+    ArticlePublic,
+    ArticleSearch,
+    ArticleSearchResponse,
+    ArticleUpdate,
+)
 
 app = APIRouter()
 
@@ -57,8 +62,12 @@ async def search_articles(
 
 
 @app.get("/{article_id}", response_model=ArticleMain)
-async def show_article(article_id: str, full_content: bool, db: Session = Depends(get_db)):
-    article = article_crud.get_article_by_id(db=db, id=article_id, full_content=full_content)
+async def show_article(
+    article_id: str, full_content: bool, db: Session = Depends(get_db)
+):
+    article = article_crud.get_article_by_id(
+        db=db, id=article_id, full_content=full_content
+    )
 
     if article is None:
         raise HTTPException(
@@ -74,7 +83,7 @@ async def create_article(
     editor: Annotated[User, Depends(get_current_approved_user)],
     db: Session = Depends(get_db),
 ):
-    plain_content = re.sub(r'<[^>]*>', '', article.content)
+    plain_content = re.sub(r"<[^>]*>", "", article.content)
     preview = (
         plain_content[:100] + " ..." if len(plain_content) > 100 else plain_content
     )
@@ -101,13 +110,15 @@ async def update_article(
     editor: Annotated[User, Depends(get_current_approved_user)],
     db: Session = Depends(get_db),
 ):
-    deprecated_article = article_crud.get_article_by_id(db=db, id=article_data.id, full_content=True)
+    deprecated_article = article_crud.get_article_by_id(
+        db=db, id=article_data.id, full_content=True
+    )
     if deprecated_article is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Article not found"
         )
 
-    plain_content = re.sub(r'<[^>]*>', '', article_data.content)
+    plain_content = re.sub(r"<[^>]*>", "", article_data.content)
     preview = (
         plain_content[:100] + " ..." if len(plain_content) > 100 else plain_content
     )

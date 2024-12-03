@@ -149,7 +149,9 @@ def get_articles_by_section(
 def get_article_by_id(db: Session, id: str, full_content: bool) -> Article:
     article = db.query(Article).filter(Article.id == id).first()
     if article:
-        article.content = article.content if full_content else re.sub(r'<[^>]*>', '', article.content)
+        article.content = (
+            article.content if full_content else re.sub(r"<[^>]*>", "", article.content)
+        )
     return article
 
 

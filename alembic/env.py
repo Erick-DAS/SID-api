@@ -60,7 +60,8 @@ def run_migrations_online() -> None:
 
     """
     config_section = config.get_section(config.config_ini_section)
-    url = f"postgresql://{cfg.POSTGRES_USER}:{cfg.POSTGRES_PASSWORD}@localhost/{cfg.POSTGRES_DB}"
+    host = f"200.144.245.12:{cfg.PORT}" if cfg.ENV == "production" else "localhost"
+    url = f"postgresql://{cfg.POSTGRES_USER}:{cfg.POSTGRES_PASSWORD}@{host}/{cfg.POSTGRES_DB}"
     config_section["sqlalchemy.url"] = url
 
     connectable = engine_from_config(
