@@ -58,8 +58,8 @@ async def search_articles(
     return ArticleSearchResponse(articles=public_articles, total=len(total_articles))
 
 @app.get("/{article_id}", response_model=ArticleMain)
-async def show_article(article_id: str, db: Session = Depends(get_db)):
-    article = article_crud.get_article_by_id(db=db, id=article_id)
+async def show_article(article_id: str, full_content: bool, db: Session = Depends(get_db)):
+    article = article_crud.get_article_by_id(db=db, id=article_id, full_content=full_content)
 
     if article is None:
         raise HTTPException(
@@ -102,7 +102,7 @@ async def update_article(
     editor: Annotated[User, Depends(get_current_approved_user)],
     db: Session = Depends(get_db),
 ):
-    deprecated_article = article_crud.get_article_by_id(db=db, id=article_data.id)
+    deprecated_article = article_crud.get_article_by_id(db=db, id=article_data.id, full_content=True)
     if deprecated_article is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Article not found"
@@ -112,7 +112,7 @@ async def update_article(
     preview = (
         plain_content[:100] + " ..." if len(plain_content) > 100 else plain_content
     )
-    
+
     new_article_data = Article(
         title=article_data.title,
         section=article_data.section.name,

@@ -1,9 +1,10 @@
+import re
 from typing import List
 
 from sqlalchemy.orm import Session, joinedload
 
 from app.models import Version
-from app.schemas.version import VersionPublic
+from app.schemas.version import VersionMain, VersionPublic
 
 
 def create_version(db: Session, version: Version) -> Version:
@@ -13,9 +14,17 @@ def create_version(db: Session, version: Version) -> Version:
     return version
 
 
-def get_version_by_id(db: Session, id: str) -> Version:
+def get_version_by_id(db: Session, id: str) -> VersionMain:
     version = db.query(Version).filter(Version.id == id).first()
-    return version
+
+    plain_content = re.sub(r'<[^>]*>', '', version.content)
+
+    return VersionMain (
+        title=version.title,
+        content=plain_content,
+        version_number=version.version_number,
+        created_at=version.created_at
+    )
 
 
 def get_versions_by_article_id(db: Session, article_id: str) -> VersionPublic:

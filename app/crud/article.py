@@ -1,3 +1,5 @@
+import re
+
 from sqlalchemy import or_
 from sqlalchemy.orm import Session, joinedload
 
@@ -144,8 +146,10 @@ def get_articles_by_section(
     ]
 
 
-def get_article_by_id(db: Session, id: str) -> Article:
+def get_article_by_id(db: Session, id: str, full_content: bool) -> Article:
     article = db.query(Article).filter(Article.id == id).first()
+    if article:
+        article.content = article.content if full_content else re.sub(r'<[^>]*>', '', article.content)
     return article
 
 
@@ -158,7 +162,7 @@ def create_article(db: Session, article: Article) -> Article:
 
 def update_article(db: Session, id: str, new_article_data: Article) -> Article:
     article = get_article_by_id(
-        db=db, id=id
+        db=db, id=id, full_content=True
     )  # Nao sei se eh a melhor ideia as funcoes do crud dependerem umas das outras
 
     article.title = new_article_data.title
